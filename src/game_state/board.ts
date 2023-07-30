@@ -1,10 +1,10 @@
-import { Piece, PieceType } from "../pieces/piece";
+import { Piece, PiecePosition, PieceType } from "../pieces/piece";
 
 export type BoardState = PieceType[];
 
-export type BoardType = Piece[];
+export type BoardType = Piece[][];
 
-export enum PlayerColor {
+export enum GameColor {
     WHITE = 'WHITE',
     BLACK = 'BLACK'
 }
@@ -26,18 +26,6 @@ const displayMap: Record<PieceType, string> = {
     [4]: `${ColorCodes.RED}O${ColorCodes.WHITE}`
 }
 
-const formatDisplaySpacing = (index: number) => {
-    if (index === 0) {
-        return ''
-    }
-
-    if (index % 8 === 0) {
-        return '\n'
-    }
-
-    return ' '
-}
-
 export class Board {
 
     width: number;
@@ -47,10 +35,24 @@ export class Board {
     constructor(boardState: BoardState) {
         this.width = 8;
         this.height = 8;
-        this.board = boardState.map((statePiece, index) => new Piece(index, statePiece));
+        this.board = boardState.reduce((acc, statePiece, index) => {
+            const arrayIndex = acc.length - 1;
+
+            if (acc.length === 0) {
+                return [[new Piece(index as PiecePosition, statePiece)]]
+            }
+
+            if (acc[arrayIndex].length % this.width === 0) {
+                return [...acc, [new Piece(index as PiecePosition, statePiece)]];
+            }
+
+            acc[arrayIndex] = [...acc[arrayIndex], new Piece(index as PiecePosition, statePiece)];
+            
+            return acc;
+        }, [] as BoardType);
     }
 
     displayBoard() {
-        console.log(this.board.map((piece, index) => `${formatDisplaySpacing(index)}${displayMap[piece.pieceType]}`).join(''));
+        console.log(this.board.map((pieceArray) => pieceArray.map((piece) => `${displayMap[piece.pieceType]}`).join(' ')).join('\n'));
     }
 }

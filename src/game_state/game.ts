@@ -1,5 +1,6 @@
-import { PieceType } from "../pieces/piece";
+import { PiecePosition, PieceType } from "../pieces/piece";
 import { Board, BoardState } from "./board";
+import { Move } from "./move";
 import { Player } from "./player";
 
 enum GameEnvironmentType {
@@ -13,8 +14,8 @@ enum GameState {
     BLACK_WON = "BLACK_WON",
 }
 
-const WHITE_PIECES = [1, 3] as PieceType[]
-const BLACK_PIECES = [2, 4] as PieceType[]
+export const WHITE_PIECES = [1, 3] as PieceType[]
+export const BLACK_PIECES = [2, 4] as PieceType[]
 
 export class Game {
 
@@ -35,31 +36,71 @@ export class Game {
     }
     
     async startGame() {
-        while (this.gameState === GameState.RUNNING) {
-            this.board.displayBoard();
+        this.board.displayBoard();
 
-            this.checkIfGameOver();
+        this.checkIfGameOver();
 
-            const move = await this.currentPlayer.getMoveFromPlayer();
+        await this.handlePlayerTurn();
 
-            // make move if available
+        this.switchTurn();
 
-            this.switchTurn();
-        }
+        // while (this.gameState === GameState.RUNNING) {
+        //     // TODO: displayBoard should push the new board state to a web client for web type player
+        //     this.board.displayBoard();
+
+        //     this.checkIfGameOver();
+
+        //     this.handlePlayerTurn();
+
+        //     this.switchTurn();
+        // }
     }
 
-    canMakeMove() {}
+    getPieceAtPosition(position: number) {
+        const quotient = Math.floor(position / this.board.width) as PiecePosition;
+        const remainder = position % this.board.width as PiecePosition;
 
-    makeMove() {}
+        return this.board.board[quotient][remainder];
+    }
+
+    canMakeMove(move: Move) {
+        const selectedPiece = this.getPieceAtPosition(move.from);
+
+        if (selectedPiece?.pieceColor && selectedPiece.pieceColor !== this.currentPlayer.playerColor) {
+            return false;
+        }
+
+        // TODO: call getPossibleMoves
+        const possibleMoves = selectedPiece.getPossibleMoves(this.board);
+    }
+
+    makeMove() {
+        // update board state and piece position
+    }
 
     unmakeMove() {
         // reset board to previous state
         // reset piece position to previous (call unMakeMove on piece)
     }
 
+    async handlePlayerTurn() {
+        let move: Move | null = null;
+
+        move = await this.currentPlayer.getMoveFromPlayer();
+
+        // while (!canMove) {
+        //     move = await this.currentPlayer.getMoveFromPlayer();
+
+        //     console.log('Calling canmakemove');
+        //     canMove = this.canMakeMove(move) ?? false;
+        // }
+        const canMove = this.canMakeMove(move) ?? false;
+        // make move if available
+    }
+
     checkIfGameOver() {
-        const whiteInGame = this.board.board.some(({ pieceType }) => WHITE_PIECES.includes(pieceType));
-        const blackInGame = this.board.board.some(({ pieceType }) => BLACK_PIECES.includes(pieceType));
+        const whiteInGame = this.board.board.some((pieceArray) => pieceArray.map(({ pieceType }) => WHITE_PIECES.includes(pieceType)));
+        const blackInGame = this.board.board.some((pieceArray) => pieceArray.map(({ pieceType }) => BLACK_PIECES.includes(pieceType)));
 
         if (!whiteInGame) {
             this.gameState = GameState.BLACK_WON;
