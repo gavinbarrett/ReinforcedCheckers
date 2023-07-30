@@ -19,10 +19,6 @@ export class CLIPlayer implements Player {
     }
 
     async getMoveFromPlayer() {
-        console.log('Getting move');
-        return new Promise((r) => {
-            console.log('Calling');
-            return prompter.question('What is your move? ', r);
-        });
+        return new Promise((r) => prompter.question('What is your move? ', r));
     };
 }

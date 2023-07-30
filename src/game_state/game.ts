@@ -68,7 +68,6 @@ export class Game {
         if (!blackInGame) {
             this.gameState = GameState.WHITE_WON;
         }
-        console.log('Returning')
     }
 
     switchTurn() {
