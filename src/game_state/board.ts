@@ -1,6 +1,6 @@
-import { Piece, PiecePosition, PieceType } from "../pieces/piece";
+import { BoardArrayPosition, Piece, PiecePosition, PieceType } from "../pieces/piece";
 
-export type BoardState = PieceType[];
+export type BoardState = PieceType[][];
 
 export type BoardType = Piece[][];
 
@@ -9,7 +9,16 @@ export enum GameColor {
     BLACK = 'BLACK'
 }
 
-export const defaultBoardState: PieceType[] = [1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 2, 0, 2, 0, 2, 2, 0, 2, 0, 2, 0, 2, 0, 0, 2, 0, 2, 0, 2, 0, 2]
+export const defaultBoardState: PieceType[][] = [
+    [1, 0, 1, 0, 1, 0, 1, 0], 
+    [0, 1, 0, 1, 0, 1, 0, 1],
+    [1, 0, 1, 0, 1, 0, 1, 0], 
+    [0, 0, 0, 0, 0, 0, 0, 0], 
+    [0, 0, 0, 0, 0, 0, 0, 0], 
+    [0, 2, 0, 2, 0, 2, 0, 2], 
+    [2, 0, 2, 0, 2, 0, 2, 0], 
+    [0, 2, 0, 2, 0, 2, 0, 2],
+];
 
 enum ColorCodes {
     WHITE = '\u001b[37m',
@@ -35,21 +44,7 @@ export class Board {
     constructor(boardState: BoardState) {
         this.width = 8;
         this.height = 8;
-        this.board = boardState.reduce((acc, statePiece, index) => {
-            const arrayIndex = acc.length - 1;
-
-            if (acc.length === 0) {
-                return [[new Piece(index as PiecePosition, statePiece)]]
-            }
-
-            if (acc[arrayIndex].length % this.width === 0) {
-                return [...acc, [new Piece(index as PiecePosition, statePiece)]];
-            }
-
-            acc[arrayIndex] = [...acc[arrayIndex], new Piece(index as PiecePosition, statePiece)];
-            
-            return acc;
-        }, [] as BoardType);
+        this.board = boardState.map((boardRow, rank) => boardRow.map((piece, file) => new Piece({ rank: rank as BoardArrayPosition, file: file as BoardArrayPosition }, piece)))
     }
 
     displayBoard() {

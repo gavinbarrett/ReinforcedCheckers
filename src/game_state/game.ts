@@ -1,4 +1,4 @@
-import { PiecePosition, PieceType } from "../pieces/piece";
+import { BoardArrayPosition, BoardPieceIndices, Piece, PiecePosition, PieceType } from "../pieces/piece";
 import { Board, BoardState } from "./board";
 import { Move } from "./move";
 import { Player } from "./player";
@@ -44,6 +44,8 @@ export class Game {
 
         this.switchTurn();
 
+        this.board.displayBoard();
+
         // while (this.gameState === GameState.RUNNING) {
         //     // TODO: displayBoard should push the new board state to a web client for web type player
         //     this.board.displayBoard();
@@ -56,26 +58,27 @@ export class Game {
         // }
     }
 
-    getPieceAtPosition(position: number) {
-        const quotient = Math.floor(position / this.board.width) as PiecePosition;
-        const remainder = position % this.board.width as PiecePosition;
-
-        return this.board.board[quotient][remainder];
-    }
-
     canMakeMove(move: Move) {
-        const selectedPiece = this.getPieceAtPosition(move.from);
+        const selectedPiece = this.board.board[move.from.rank][move.from.file];
 
         if (selectedPiece?.pieceColor && selectedPiece.pieceColor !== this.currentPlayer.playerColor) {
             return false;
         }
 
-        // TODO: call getPossibleMoves
         const possibleMoves = selectedPiece.getPossibleMoves(this.board);
+
+        return possibleMoves.some(([rank, file]) => rank === move.to.rank && file === move.to.file);
     }
 
-    makeMove() {
+    makeMove(move: Move) {
         // update board state and piece position
+        const selectedPiece = this.board.board[move.from.rank][move.from.file];
+
+        this.board.board[move.to.rank][move.to.file] = selectedPiece;
+
+        selectedPiece.setNewPosition(move.to);
+
+        this.board.board[move.from.rank][move.from.file] = new Piece({ rank: move.from.rank, file: move.from.file }, 0);
     }
 
     unmakeMove() {
@@ -94,7 +97,12 @@ export class Game {
         //     console.log('Calling canmakemove');
         //     canMove = this.canMakeMove(move) ?? false;
         // }
-        const canMove = this.canMakeMove(move) ?? false;
+        const canMove = this.canMakeMove(move);
+
+        if (canMove) {
+            this.makeMove(move);
+        }
+
         // make move if available
     }
 

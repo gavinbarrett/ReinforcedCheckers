@@ -1,7 +1,7 @@
 import * as readline from 'readline'
 import { GameColor } from "./board";
 import { Move } from './move'
-import { PiecePosition } from '../pieces/piece';
+import { BoardArrayPosition, PiecePosition } from '../pieces/piece';
 
 const prompter = readline.createInterface({
     input: process.stdin,
@@ -32,16 +32,28 @@ export class CLIPlayer implements Player {
     }
 
     async getMoveFromPlayer() {
-        let from;
-        let to;
-        let fromNumber: PiecePosition | null = null;
-        let toNumber: PiecePosition | null = null;
+        let fromRank;
+        let fromFile;
+        let toRank;
+        let toFile;
+        let fromCoords;
+        let toCoords;
+        let fromRankNumber: BoardArrayPosition | null = null;
+        let fromFileNumber: BoardArrayPosition | null = null;
+        let toRankNumber: BoardArrayPosition | null = null;
+        let toFileNumber: BoardArrayPosition | null = null;
 
         let move: string = await this.getPrompt();
 
-        [from, to] = move.split(',');
-        fromNumber = Number(from) as PiecePosition;
-        toNumber = Number(to) as PiecePosition;
+        [fromCoords, toCoords] = move.split(' ');
+
+        [fromRank, fromFile] = fromCoords.split(',');
+        [toRank, toFile] = toCoords.split(',');
+
+        fromRankNumber = Number(fromRank) as BoardArrayPosition;
+        fromFileNumber = Number(fromFile) as BoardArrayPosition;
+        toRankNumber = Number(toRank) as BoardArrayPosition;
+        toFileNumber = Number(toFile) as BoardArrayPosition;
 
         // while (!isValidMoveSet(fromNumber, toNumber)) {
         //     move = await this.getPrompt();
@@ -53,13 +65,20 @@ export class CLIPlayer implements Player {
             // toNumber = Number(to) as PiecePosition;
         // }
 
-        if (!Number.isInteger(fromNumber) || !Number.isInteger(toNumber)) {
+        if (!Number.isInteger(fromRankNumber) || !Number.isInteger(toRankNumber) || !Number.isInteger(fromFileNumber) || !Number.isInteger(toFileNumber)) {
             throw Error('Numbers not valid');
         }
 
-        console.log('Found valid moves', move);
-
-        return { from: fromNumber as PiecePosition, to: toNumber as PiecePosition }
+        return { 
+            from: {
+                rank: fromRankNumber,
+                file: fromFileNumber
+            },
+            to: {
+                rank: toRankNumber,
+                file: toFileNumber
+            } 
+        }
 
     };
 }
