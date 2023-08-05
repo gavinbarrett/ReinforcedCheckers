@@ -14,7 +14,10 @@ export interface Player {
     getMoveFromPlayer: () => Promise<Move>;
 }
 
-const isValidMoveSet = (fromNumber: number | null, toNumber: number | null) => fromNumber && toNumber && (0 <= fromNumber && fromNumber <= 63) && (0 <= toNumber && toNumber <= 63);
+const areInBounds = (numbers: Array<number | null>) => numbers.every((number) => number !== null && Number.isInteger(number) && 0 <= number && number < 8); 
+
+const isValidMoveSet = (coordinateSet: Array<number | null>) => 
+    areInBounds(coordinateSet);
 
 
 // TODO: also create WebPlayer, which receives inputs over a network
@@ -45,6 +48,7 @@ export class CLIPlayer implements Player {
 
         let move: string = await this.getPrompt();
 
+        // TODO: use regex to parse out values
         [fromCoords, toCoords] = move.split(' ');
 
         [fromRank, fromFile] = fromCoords.split(',');
@@ -55,15 +59,19 @@ export class CLIPlayer implements Player {
         toRankNumber = Number(toRank) as BoardArrayPosition;
         toFileNumber = Number(toFile) as BoardArrayPosition;
 
-        // while (!isValidMoveSet(fromNumber, toNumber)) {
-        //     move = await this.getPrompt();
+        while (!isValidMoveSet([fromRankNumber, toRankNumber, fromFileNumber, toFileNumber])) {
+            move = await this.getPrompt();
 
-        //     console.log('Move', move);
-        //     [from, to] = move.split(',');
+            [fromCoords, toCoords] = move.split(' ');
 
-            // fromNumber = Number(from) as PiecePosition;
-            // toNumber = Number(to) as PiecePosition;
-        // }
+            [fromRank, fromFile] = fromCoords.split(',');
+            [toRank, toFile] = toCoords.split(',');
+    
+            fromRankNumber = Number(fromRank) as BoardArrayPosition;
+            fromFileNumber = Number(fromFile) as BoardArrayPosition;
+            toRankNumber = Number(toRank) as BoardArrayPosition;
+            toFileNumber = Number(toFile) as BoardArrayPosition;
+        }
 
         if (!Number.isInteger(fromRankNumber) || !Number.isInteger(toRankNumber) || !Number.isInteger(fromFileNumber) || !Number.isInteger(toFileNumber)) {
             throw Error('Numbers not valid');

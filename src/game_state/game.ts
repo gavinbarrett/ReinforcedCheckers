@@ -1,4 +1,4 @@
-import { BoardArrayPosition, BoardPieceIndices, Piece, PiecePosition, PieceType } from "../pieces/piece";
+import { BoardArrayPosition, BoardPieceIndices, ExecutableMove, Piece, PiecePosition, PieceType } from "../pieces/piece";
 import { Board, BoardState } from "./board";
 import { Move } from "./move";
 import { Player } from "./player";
@@ -36,42 +36,34 @@ export class Game {
     }
     
     async startGame() {
-        this.board.displayBoard();
+        while (this.gameState === GameState.RUNNING) {
+            this.board.displayBoard();
 
-        this.checkIfGameOver();
+            if (this.isGameOver()) {
+                continue;
+            }
 
-        await this.handlePlayerTurn();
+            await this.handlePlayerTurn();
 
-        this.switchTurn();
+            this.switchTurn();
+        }
 
-        this.board.displayBoard();
-
-        // while (this.gameState === GameState.RUNNING) {
-        //     // TODO: displayBoard should push the new board state to a web client for web type player
-        //     this.board.displayBoard();
-
-        //     this.checkIfGameOver();
-
-        //     this.handlePlayerTurn();
-
-        //     this.switchTurn();
-        // }
+        // TODO: Display final results
     }
 
-    canMakeMove(move: Move) {
+    canMakeMove(move: Move): ExecutableMove | null {
         const selectedPiece = this.board.board[move.from.rank][move.from.file];
 
         if (selectedPiece?.pieceColor && selectedPiece.pieceColor !== this.currentPlayer.playerColor) {
-            return false;
+            return null;
         }
 
         const possibleMoves = selectedPiece.getPossibleMoves(this.board);
 
-        return possibleMoves.some(([rank, file]) => rank === move.to.rank && file === move.to.file);
+        return possibleMoves.find(({ rank, file }) => rank === move.to.rank && file === move.to.file) ?? null;
     }
 
-    makeMove(move: Move) {
-        // update board state and piece position
+    makeMove(move: Move, { captureCoordinate }: ExecutableMove) {
         const selectedPiece = this.board.board[move.from.rank][move.from.file];
 
         this.board.board[move.to.rank][move.to.file] = selectedPiece;
@@ -79,6 +71,10 @@ export class Game {
         selectedPiece.setNewPosition(move.to);
 
         this.board.board[move.from.rank][move.from.file] = new Piece({ rank: move.from.rank, file: move.from.file }, 0);
+
+        if (captureCoordinate) {
+            this.board.board[captureCoordinate.rank][captureCoordinate.file] = new Piece({ rank: captureCoordinate.rank, file: captureCoordinate.file }, 0)
+        }
     }
 
     unmakeMove() {
@@ -86,36 +82,35 @@ export class Game {
         // reset piece position to previous (call unMakeMove on piece)
     }
 
+    // TODO: after a piece moves, we need to generate the next possible moves. If at least one exists in the set we are able to jump again
     async handlePlayerTurn() {
         let move: Move | null = null;
 
         move = await this.currentPlayer.getMoveFromPlayer();
 
-        // while (!canMove) {
-        //     move = await this.currentPlayer.getMoveFromPlayer();
+        let executableMove = this.canMakeMove(move);
 
-        //     console.log('Calling canmakemove');
-        //     canMove = this.canMakeMove(move) ?? false;
-        // }
-        const canMove = this.canMakeMove(move);
+        while (!move || !executableMove) {
+            move = await this.currentPlayer.getMoveFromPlayer();
 
-        if (canMove) {
-            this.makeMove(move);
+            executableMove = this.canMakeMove(move);
         }
 
-        // make move if available
+        this.makeMove(move, executableMove);
     }
 
-    checkIfGameOver() {
-        const whiteInGame = this.board.board.some((pieceArray) => pieceArray.map(({ pieceType }) => WHITE_PIECES.includes(pieceType)));
-        const blackInGame = this.board.board.some((pieceArray) => pieceArray.map(({ pieceType }) => BLACK_PIECES.includes(pieceType)));
+    isGameOver() {
+        const whiteInGame = this.board.board.some((pieceArray) => pieceArray.some(({ pieceType }) => WHITE_PIECES.includes(pieceType)));
+        const blackInGame = this.board.board.some((pieceArray) => pieceArray.some(({ pieceType }) => BLACK_PIECES.includes(pieceType)));
 
         if (!whiteInGame) {
             this.gameState = GameState.BLACK_WON;
+            return true;
         }
 
         if (!blackInGame) {
             this.gameState = GameState.WHITE_WON;
+            return true;
         }
     }
 

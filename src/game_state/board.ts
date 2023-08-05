@@ -20,6 +20,17 @@ export const defaultBoardState: PieceType[][] = [
     [0, 2, 0, 2, 0, 2, 0, 2],
 ];
 
+export const whiteWonBoardState: PieceType[][] = [
+    [1, 0, 1, 0, 1, 0, 1, 0], 
+    [0, 1, 0, 1, 0, 1, 0, 1],
+    [1, 0, 1, 0, 1, 0, 1, 0], 
+    [0, 0, 0, 0, 0, 0, 0, 0], 
+    [0, 0, 0, 0, 0, 0, 0, 0], 
+    [0, 0, 0, 0, 0, 0, 0, 0], 
+    [0, 0, 0, 0, 0, 0, 0, 0], 
+    [0, 0, 0, 0, 0, 0, 0, 0],
+];
+
 enum ColorCodes {
     WHITE = '\u001b[37m',
     RED = '\u001b[31m',
