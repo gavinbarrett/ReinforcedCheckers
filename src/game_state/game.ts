@@ -63,11 +63,25 @@ export class Game {
         return possibleMoves.find(({ rank, file }) => rank === move.to.rank && file === move.to.file) ?? null;
     }
 
+    canChainCapture({ rank, file, captureCoordinate }: ExecutableMove) {
+        if (!captureCoordinate) return false;
+
+        const selectedPiece = this.board.board[rank][file];
+
+        if (selectedPiece?.pieceColor && selectedPiece.pieceColor !== this.currentPlayer.playerColor) {
+            return false;
+        }
+
+        const possibleMoves = selectedPiece.getPossibleMoves(this.board);
+
+        return possibleMoves.some(({ captureCoordinate }) => captureCoordinate);
+    }
+
     makeMove(move: Move, { captureCoordinate }: ExecutableMove) {
         const selectedPiece = this.board.board[move.from.rank][move.from.file];
 
+        // maybe consolidate the two next operations into one
         this.board.board[move.to.rank][move.to.file] = selectedPiece;
-
         selectedPiece.setNewPosition(move.to);
 
         this.board.board[move.from.rank][move.from.file] = new Piece({ rank: move.from.rank, file: move.from.file }, 0);
@@ -82,8 +96,8 @@ export class Game {
         // reset piece position to previous (call unMakeMove on piece)
     }
 
-    // TODO: after a piece moves, we need to generate the next possible moves. If at least one exists in the set we are able to jump again
     async handlePlayerTurn() {
+        console.log(`It is ${this.currentPlayer.playerColor}'s turn`);
         let move: Move | null = null;
 
         move = await this.currentPlayer.getMoveFromPlayer();
@@ -97,6 +111,10 @@ export class Game {
         }
 
         this.makeMove(move, executableMove);
+
+        if (this.canChainCapture(executableMove)) {
+            await this.handlePlayerTurn();
+        }
     }
 
     isGameOver() {
