@@ -88,11 +88,16 @@ export class Piece implements PieceInterface {
     setNewPosition(position: PiecePosition) {
         this.position = position;
 
-        // if (!this.isKing) {
-            
-        // }
-
-        // TODO: if piece isn't a king and landed on the other side of the board, promote them
+        if (!this.isKing) {
+            if (this.pieceColor === GameColor.WHITE && this.getPosition().rank === 7) {
+                this.pieceType = 3;
+                this.isKing = true;
+            }
+            if (this.pieceColor === GameColor.BLACK && this.getPosition().rank === 0) {
+                this.pieceType = 4;
+                this.isKing = true;
+            }
+        }
     }
 
     getKingMoveOffset() {
