@@ -1,4 +1,4 @@
-import { BoardArrayPosition, Piece, PiecePosition, PieceType } from "../pieces/piece";
+import { BoardArrayPosition, Piece, PieceType } from "../pieces/piece";
 
 export type BoardState = PieceType[][];
 

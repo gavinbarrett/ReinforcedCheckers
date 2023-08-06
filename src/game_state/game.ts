@@ -73,7 +73,7 @@ export class Game {
 
         const possibleMoves = selectedPiece.getPossibleMoves(this.board);
 
-        console.log('Possible', possibleMoves);
+        // console.log('Possible', possibleMoves);
         return possibleMoves.find(({ rank, file }) => rank === move.to.rank && file === move.to.file) ?? null;
     }
 
