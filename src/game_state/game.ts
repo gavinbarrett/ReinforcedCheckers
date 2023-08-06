@@ -1,4 +1,5 @@
-import { BoardArrayPosition, BoardPieceIndices, ExecutableMove, Piece, PiecePosition, PieceType } from "../pieces/piece";
+import { exit } from "process";
+import { ExecutableMove, Piece, PieceType } from "../pieces/piece";
 import { Board, BoardState } from "./board";
 import { Move } from "./move";
 import { Player } from "./player";
@@ -16,6 +17,12 @@ enum GameState {
 
 export const WHITE_PIECES = [1, 3] as PieceType[]
 export const BLACK_PIECES = [2, 4] as PieceType[]
+
+const endGameStateDisplay: Record<GameState, string> = {
+    [GameState.WHITE_WON]: 'White won!',
+    [GameState.BLACK_WON]: 'Black won!',
+    [GameState.RUNNING]: 'Game was terminated early!',
+}
 
 export class Game {
 
@@ -48,7 +55,13 @@ export class Game {
             this.switchTurn();
         }
 
-        // TODO: Display final results
+        this.handleEndgameDisplay();
+    }
+
+    async handleEndgameDisplay() {
+        console.log(endGameStateDisplay[this.gameState]);
+
+        exit();
     }
 
     canMakeMove(move: Move): ExecutableMove | null {
@@ -99,6 +112,7 @@ export class Game {
 
     async handlePlayerTurn() {
         console.log(`It is ${this.currentPlayer.playerColor}'s turn`);
+        
         let move: Move | null = null;
 
         move = await this.currentPlayer.getMoveFromPlayer();
